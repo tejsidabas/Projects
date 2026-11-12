@@ -1,0 +1,50 @@
+[
+  {
+    "id": "cleaning",
+    "name": "House Cleaning",
+    "icon": "🧹",
+    "price": 200,
+    "description": "Thorough dusting, sweeping, mopping, and tidy-up for every room.",
+    "color": "pink"
+  },
+  {
+    "id": "cooking",
+    "name": "Cooking",
+    "icon": "🍲",
+    "price": 250,
+    "description": "Fresh, wholesome everyday meals prepared according to your taste.",
+    "color": "orange"
+  },
+  {
+    "id": "laundry",
+    "name": "Laundry",
+    "icon": "🧺",
+    "price": 150,
+    "description": "Washing, drying, folding, and fabric care made simple.",
+    "color": "blue"
+  },
+  {
+    "id": "dishes",
+    "name": "Dishwashing",
+    "icon": "🍽️",
+    "price": 150,
+    "description": "Kitchen cleaning, utensil washing, and sink sanitization.",
+    "color": "green"
+  },
+  {
+    "id": "grocery",
+    "name": "Grocery Assistance",
+    "icon": "🛍️",
+    "price": 150,
+    "description": "Market errands, grocery checklist pickup, and pantry organization.",
+    "color": "orange"
+  },
+  {
+    "id": "elderly",
+    "name": "Elderly Assistance",
+    "icon": "💗",
+    "price": 250,
+    "description": "Companion care, mobility support, and daily routine assistance.",
+    "color": "teal"
+  }
+]

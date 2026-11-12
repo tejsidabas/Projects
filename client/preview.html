@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f63360" />
+    <title>Sahayata — Smart Help for Every Home (Live Preview)</title>
+
+    <!-- Google Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" />
+
+    <!-- React, ReactDOM & Babel Standalone for Instant In-Browser Compilation -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useEffect } = React;
+
+      // Seed Services
+      const initialServices = [
+        { id: 'cleaning', name: 'House Cleaning', icon: '🧹', price: 200, description: 'Dusting, sweeping, mopping, and home tidying.', color: 'pink' },
+        { id: 'cooking', name: 'Cooking', icon: '🍲', price: 250, description: 'Nutritious daily meals prepared at your home.', color: 'orange' },
+        { id: 'laundry', name: 'Laundry', icon: '🧺', price: 150, description: 'Washing, folding, and fabric ironing.', color: 'blue' },
+        { id: 'dishes', name: 'Dishwashing', icon: '🍽️', price: 150, description: 'Utensils and kitchen sink sanitization.', color: 'green' },
+        { id: 'grocery', name: 'Grocery Assistance', icon: '🛍️', price: 150, description: 'Market shopping and daily household errands.', color: 'orange' },
+        { id: 'elderly', name: 'Elderly Assistance', icon: '💗', price: 250, description: 'Compassionate companionship and daily routine care.', color: 'teal' }
+      ];
+
+      // Seed Helpers
+      const initialHelpers = [
+        { id: 'h1', name: 'Priya Sharma', email: 'priya@demo.com', phone: '9876543210', role: 'Helper', skills: ['House Cleaning', 'Cooking', 'Laundry'], experience: 5, rate: 200, rating: 4.8, reviews: 124, area: 'Rohini, Delhi', available: true, verified: true, bio: 'Punctual, thorough, and experienced in complete home cleaning and meal preparation.' },
+        { id: 'h2', name: 'Sunita Verma', email: 'sunita@demo.com', phone: '9876543211', role: 'Helper', skills: ['House Cleaning', 'Dishwashing'], experience: 4, rate: 180, rating: 4.6, reviews: 89, area: 'Pitampura, Delhi', available: true, verified: true, bio: 'Reliable and dedicated to keeping homes neat, hygienic, and spotless.' },
+        { id: 'h3', name: 'Anita Devi', email: 'anita@demo.com', phone: '9876543212', role: 'Helper', skills: ['Cooking', 'Elderly Assistance'], experience: 6, rate: 220, rating: 4.7, reviews: 76, area: 'Narela, Delhi', available: true, verified: true, bio: 'Specializes in nutritious home-cooked meals and compassionate elderly care.' },
+        { id: 'h4', name: 'Rajesh Kumar', email: 'rajesh@demo.com', phone: '9876543213', role: 'Helper', skills: ['House Cleaning', 'Grocery Assistance', 'Laundry'], experience: 7, rate: 210, rating: 4.9, reviews: 112, area: 'Rohini, Delhi', available: true, verified: true, bio: 'Experienced in deep cleaning, errands, and dependable assistance.' }
+      ];
+
+      // Seed Bookings
+      const initialBookings = [
+        {
+          id: 'b_101',
+          userId: 'u1',
+          userName: 'Rahul Mehta',
+          helperId: 'h1',
+          helperName: 'Priya Sharma',
+          serviceName: 'House Cleaning',
+          icon: '🧹',
+          date: '2026-11-15',
+          time: '10:00',
+          duration: 2,
+          address: 'Flat 302, Palm Heights, Sector 9, Rohini, Delhi',
+          notes: 'Focus on living room and balcony.',
+          amount: 400,
+          status: 'Confirmed',
+          paymentStatus: 'Pending',
+          paymentMethod: 'UPI',
+          checkInTime: null,
+          checkOutTime: null,
+          matchScore: 94
+        },
+        {
+          id: 'b_102',
+          userId: 'u1',
+          userName: 'Rahul Mehta',
+          helperId: 'h2',
+          helperName: 'Sunita Verma',
+          serviceName: 'Dishwashing',
+          icon: '🍽️',
+          date: '2026-11-08',
+          time: '14:00',
+          duration: 1,
+          address: 'Flat 302, Palm Heights, Sector 9, Rohini, Delhi',
+          notes: 'Post-lunch kitchen dishwashing.',
+          amount: 150,
+          status: 'Completed',
+          paymentStatus: 'Paid',
+          paymentMethod: 'Cash',
+          checkInTime: '2026-11-08T14:02:00.000Z',
+          checkOutTime: '2026-11-08T15:05:00.000Z',
+          review: { rating: 5, comment: 'Sunita did an immaculate job. Very quick and polite!' },
+          matchScore: 88
+        }
+      ];
+
+      function App() {
+        const [page, setPage] = useState('home');
+        const [services] = useState(initialServices);
+        const [helpers, setHelpers] = useState(initialHelpers);
+        const [bookings, setBookings] = useState(initialBookings);
+        const [user, setUser] = useState({
+          id: 'u1',
+          name: 'Rahul Mehta',
+          email: 'rahul@demo.com',
+          role: 'Household',
+          address: 'Sector 9, Rohini, Delhi'
+        });
+        const [selectedService, setSelectedService] = useState(initialServices[0]);
+        const [selectedHelper, setSelectedHelper] = useState(initialHelpers[0]);
+        const [notice, setNotice] = useState('Sahayata Live Demo Loaded! You are logged in as Rahul (Household).');
+        const [isUrgentOpen, setIsUrgentOpen] = useState(false);
+        const [isReviewOpen, setIsReviewOpen] = useState(false);
+        const [reviewTarget, setReviewTarget] = useState(null);
+
+        // Booking Form State
+        const [bookingDate, setBookingDate] = useState('2026-11-16');
+        const [bookingTime, setBookingTime] = useState('10:00');
+        const [bookingDuration, setBookingDuration] = useState('2');
+        const [bookingAddress, setBookingAddress] = useState('Sector 9, Rohini, Delhi');
+        const [bookingNotes, setBookingNotes] = useState('');
+
+        // Helper filter
+        const [helperFilter, setHelperFilter] = useState('All Services');
+        const [helperSearch, setHelperSearch] = useState('');
+
+        useEffect(() => {
+          if (notice) {
+            const t = setTimeout(() => setNotice(''), 4500);
+            return () => clearTimeout(t);
+          }
+        }, [notice]);
+
+        function switchRole(newRole) {
+          if (newRole === 'Household') {
+            setUser({ id: 'u1', name: 'Rahul Mehta', email: 'rahul@demo.com', role: 'Household', address: 'Sector 9, Rohini, Delhi' });
+            setNotice('Switched active view to Household (Rahul Mehta)');
+          } else if (newRole === 'Helper') {
+            setUser({ id: 'h1', name: 'Priya Sharma', email: 'priya@demo.com', role: 'Helper', available: true, rate: 200, rating: 4.8 });
+            setNotice('Switched active view to Helper (Priya Sharma)');
+          } else {
+            setUser({ id: 'admin1', name: 'System Admin', email: 'admin@demo.com', role: 'Admin' });
+            setNotice('Switched active view to Administrator Console');
+          }
+          setPage('dashboard');
+        }
+
+        function handleCreateBooking(e) {
+          e.preventDefault();
+          const amount = (selectedHelper?.rate || selectedService.price) * Number(bookingDuration);
+          const newB = {
+            id: 'b_' + Date.now(),
+            userId: user.id,
+            userName: user.name,
+            helperId: selectedHelper.id,
+            helperName: selectedHelper.name,
+            serviceName: selectedService.name,
+            icon: selectedService.icon,
+            date: bookingDate,
+            time: bookingTime,
+            duration: Number(bookingDuration),
+            address: bookingAddress,
+            notes: bookingNotes,
+            amount: amount,
+            status: 'Confirmed',
+            paymentStatus: 'Pending',
+            paymentMethod: 'UPI',
+            matchScore: 92
+          };
+          setBookings([newB, ...bookings]);
+          setNotice('✓ Booking successfully confirmed!');
+          setPage('bookings');
+        }
+
+        function handleUrgentConfirm(svcId) {
+          const svc = services.find(s => s.id === svcId) || services[0];
+          const best = helpers.find(h => h.available) || helpers[0];
+          const newB = {
+            id: 'b_' + Date.now(),
+            userId: user.id,
+            userName: user.name,
+            helperId: best.id,
+            helperName: best.name,
+            serviceName: svc.name,
+            icon: svc.icon,
+            date: new Date().toISOString().slice(0, 10),
+            time: '11:00',
+            duration: 2,
+            address: user.address || 'Sector 9, Rohini, Delhi',
+            notes: '[URGENT DISPATCH] Immediate service requested.',
+            amount: svc.price * 2,
+            status: 'Confirmed',
+            paymentStatus: 'Pending',
+            paymentMethod: 'UPI',
+            matchScore: 96
+          };
+          setBookings([newB, ...bookings]);
+          setIsUrgentOpen(false);
+          setNotice(`⚡ Urgent help assigned to ${best.name} (96% Suitability Match)!`);
+          setPage('bookings');
+        }
+
+        function handleAttendance(bookingId, action) {
+          setBookings(bookings.map(b => {
+            if (b.id !== bookingId) return b;
+            if (action === 'check-in') {
+              setNotice('✓ Arrival Check-In recorded. Service is now In Progress.');
+              return { ...b, checkInTime: new Date().toISOString(), status: 'In Progress' };
+            }
+            if (action === 'check-out') {
+              setNotice('✓ Completion Check-Out recorded. Service is Completed.');
+              return { ...b, checkOutTime: new Date().toISOString(), status: 'Completed' };
+            }
+            return b;
+          }));
+        }
+
+        function handleReplace(bookingId) {
+          const target = bookings.find(b => b.id === bookingId);
+          const nextHelper = helpers.find(h => h.id !== target.helperId) || helpers[1];
+          setBookings(bookings.map(b => {
+            if (b.id !== bookingId) return b;
+            return {
+              ...b,
+              helperId: nextHelper.id,
+              helperName: nextHelper.name,
+              status: 'Confirmed',
+              matchScore: 90
+            };
+          }));
+          setNotice(`🔄 Automated Replacement: Reassigned from ${target.helperName} to ${nextHelper.name}!`);
+        }
+
+        function handlePay(bookingId) {
+          setBookings(bookings.map(b => b.id === bookingId ? { ...b, paymentStatus: 'Paid' } : b));
+          setNotice('✓ Payment recorded (Demo).');
+        }
+
+        function handleCancel(bookingId) {
+          setBookings(bookings.map(b => b.id === bookingId ? { ...b, status: 'Cancelled' } : b));
+          setNotice('Booking marked as Cancelled.');
+        }
+
+        function handleToggleVerify(helperId) {
+          setHelpers(helpers.map(h => h.id === helperId ? { ...h, verified: !h.verified } : h));
+          setNotice('Helper verification status updated.');
+        }
+
+        function handleToggleAvailability(status) {
+          setUser({ ...user, available: status });
+          setNotice(`Availability updated to ${status ? 'Available' : 'Unavailable'}.`);
+        }
+
+        // Helper filtering
+        const filteredHelpers = helpers.filter(h => {
+          const matchS = helperFilter === 'All Services' || h.skills.includes(helperFilter);
+          const q = helperSearch.toLowerCase();
+          const matchQ = !q || h.name.toLowerCase().includes(q) || h.area.toLowerCase().includes(q);
+          return matchS && matchQ;
+        });
+
+        return (
+          <div className="app-shell">
+            {/* Top Quick Role Switcher Bar */}
+            <div style={{ background: '#202235', color: '#fff', padding: '7px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', flexWrap: 'wrap', gap: '8px' }}>
+              <span>🚀 <strong>Sahayata Academic Demo:</strong> Currently viewing as: <b>{user?.name} ({user?.role})</b></span>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <span style={{ opacity: 0.8, marginRight: '4px' }}>Switch View:</span>
+                <button className={`btn btn-small ${user?.role === 'Household' ? 'btn-primary' : 'btn-outline'}`} style={{ padding: '3px 8px', fontSize: '10px' }} onClick={() => switchRole('Household')}>Household</button>
+                <button className={`btn btn-small ${user?.role === 'Helper' ? 'btn-primary' : 'btn-outline'}`} style={{ padding: '3px 8px', fontSize: '10px' }} onClick={() => switchRole('Helper')}>Helper</button>
+                <button className={`btn btn-small ${user?.role === 'Admin' ? 'btn-primary' : 'btn-outline'}`} style={{ padding: '3px 8px', fontSize: '10px' }} onClick={() => switchRole('Admin')}>Admin Console</button>
+              </div>
+            </div>
+
+            {/* Navbar */}
+            <header className="topbar">
+              <button className="brand" onClick={() => setPage('home')}>
+                <span className="brand-mark">⌂</span>
+                <span>Sahayata<small>Smart Help for Every Home</small></span>
+              </button>
+
+              <nav className="main-nav">
+                <button onClick={() => setPage('home')}>Home</button>
+                <button onClick={() => setPage('services')}>Services</button>
+                <button onClick={() => setPage('helpers')}>Find Help</button>
+                <button onClick={() => setPage('about')}>About Project</button>
+              </nav>
+
+              <div className="nav-actions">
+                {user?.role === 'Household' && (
+                  <button className="btn btn-quiet btn-small" onClick={() => setIsUrgentOpen(true)}>
+                    ⚡ Need Help Now?
+                  </button>
+                )}
+                <button className="user-chip" onClick={() => setPage('dashboard')}>
+                  <span className="avatar tiny">{user.name[0]}</span>
+                  <span>{user.name.split(' ')[0]}</span>
+                </button>
+                <button className="btn btn-outline btn-small" onClick={() => setPage('bookings')}>Bookings</button>
+              </div>
+            </header>
+
+            {notice && (
+              <div className="toast">
+                <span>✓</span>
+                <span>{notice}</span>
+                <button onClick={() => setNotice('')}>×</button>
+              </div>
+            )}
+
+            <main>
+              {/* HOME PAGE */}
+              {page === 'home' && (
+                <>
+                  <section className="hero">
+                    <div className="hero-copy">
+                      <span className="eyebrow"><span>✦</span> TRUSTED · TRANSPARENT · CONVENIENT</span>
+                      <h1>Good help makes<br /><em>home feel better.</em></h1>
+                      <p>Connect with verified domestic helpers for cleaning, cooking, laundry, and daily care. Slot-based scheduling with automated conflict-free matching.</p>
+                      <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+                        <button className="btn btn-primary" onClick={() => setPage('services')}>Explore Services →</button>
+                        <button className="btn btn-quiet" onClick={() => setIsUrgentOpen(true)}>⚡ Need Help Now?</button>
+                      </div>
+                    </div>
+                    <div className="hero-art">
+                      <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1100&q=85" alt="Clean Home" />
+                      <div className="floating-card">
+                        <span className="float-icon">✓</span>
+                        <div><strong>Verified Helpers</strong><small>Admin approved profiles</small></div>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="trust-strip">
+                    <div><span className="trust-icon pink">♧</span><div><strong>Verified Profiles</strong><small>Admin vetted workers</small></div></div>
+                    <div><span className="trust-icon yellow">◷</span><div><strong>Slot-Based Booking</strong><small>Conflict-free calendar</small></div></div>
+                    <div><span className="trust-icon violet">♡</span><div><strong>Smart Allocation</strong><small>Ranked suitability score</small></div></div>
+                    <div><span className="trust-icon mint">✓</span><div><strong>Clear Pricing</strong><small>Hourly transparent rates</small></div></div>
+                  </section>
+
+                  <section className="section">
+                    <div className="section-heading">
+                      <div><span className="eyebrow">DOMESTIC SERVICES</span><h2>What can we help with?</h2><p>Select a service to book trusted help.</p></div>
+                      <button className="text-link" onClick={() => setPage('services')}>View all services →</button>
+                    </div>
+                    <div className="service-grid">
+                      {services.map(s => (
+                        <button key={s.id} className="service-card" onClick={() => { setSelectedService(s); setPage('booking'); }}>
+                          <div className="service-photo">
+                            <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=650&q=80" alt={s.name} />
+                            <span className={`service-icon ${s.color}`}>{s.icon}</span>
+                          </div>
+                          <div className="service-card-content">
+                            <div className="service-title-row"><h3>{s.name}</h3><span className="arrow-circle">↗</span></div>
+                            <p>{s.description}</p>
+                            <div className="service-price">From <strong>₹{s.price}</strong><span>/hour</span></div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+
+                  <section className="section helper-section">
+                    <div className="section-heading">
+                      <div><span className="eyebrow">OUR HELPERS</span><h2>Meet Your Helping Hands</h2><p>Verified, background-checked domestic helpers.</p></div>
+                      <button className="text-link" onClick={() => setPage('helpers')}>View all helpers →</button>
+                    </div>
+                    <div className="helper-grid">
+                      {helpers.slice(0, 3).map(h => (
+                        <article key={h.id} className="helper-card">
+                          <div className="helper-main" onClick={() => { setSelectedHelper(h); setPage('profile'); }} style={{ cursor: 'pointer' }}>
+                            <div className="helper-photo">
+                              <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80" alt={h.name} />
+                              <span className="online-dot" />
+                            </div>
+                            <div className="helper-info">
+                              <div className="helper-name-row"><h3>{h.name}</h3>{h.verified && <span className="verified-mark">✓</span>}</div>
+                              <div className="rating-line"><span className="stars">★★★★★</span> <strong>{h.rating}</strong> <span className="muted">({h.reviews})</span></div>
+                              <p className="helper-location">📍 {h.area}</p>
+                              <div className="skill-pills">{h.skills.slice(0, 2).map(sk => <span key={sk} className="skill-pill">{sk}</span>)}</div>
+                            </div>
+                          </div>
+                          <div className="helper-card-bottom">
+                            <div><strong>₹{h.rate}<small>/hr</small></strong><small>{h.experience}+ yrs exp</small></div>
+                            <button className="btn btn-primary btn-small" onClick={() => { setSelectedHelper(h); setPage('booking'); }}>Book now</button>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  </section>
+                </>
+              )}
+
+              {/* SERVICES PAGE */}
+              {page === 'services' && (
+                <section className="page-frame">
+                  <div className="page-heading">
+                    <span className="eyebrow">OUR SERVICES</span>
+                    <h1>Household Services Catalog</h1>
+                    <p>Choose the help you need and let Sahayata match you with a verified helper.</p>
+                  </div>
+                  <div className="service-grid">
+                    {services.map(s => (
+                      <button key={s.id} className="service-card" onClick={() => { setSelectedService(s); setPage('booking'); }}>
+                        <div className="service-photo">
+                          <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=650&q=80" alt={s.name} />
+                          <span className={`service-icon ${s.color}`}>{s.icon}</span>
+                        </div>
+                        <div className="service-card-content">
+                          <div className="service-title-row"><h3>{s.name}</h3><span className="arrow-circle">↗</span></div>
+                          <p>{s.description}</p>
+                          <div className="service-price">From <strong>₹{s.price}</strong><span>/hour</span></div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* HELPERS PAGE */}
+              {page === 'helpers' && (
+                <section className="page-frame">
+                  <div className="page-heading">
+                    <span className="eyebrow">HELPERS DIRECTORY</span>
+                    <h1>Find Domestic Help</h1>
+                    <p>Browse skilled helpers in your area.</p>
+                  </div>
+                  <div className="filter-bar">
+                    <label>Service:
+                      <select value={helperFilter} onChange={e => setHelperFilter(e.target.value)}>
+                        <option>All Services</option>
+                        {services.map(s => <option key={s.id}>{s.name}</option>)}
+                      </select>
+                    </label>
+                    <label className="filter-search">Search:
+                      <input placeholder="Name or area..." value={helperSearch} onChange={e => setHelperSearch(e.target.value)} />
+                    </label>
+                  </div>
+                  <div className="helper-grid">
+                    {filteredHelpers.map(h => (
+                      <article key={h.id} className="helper-card">
+                        <div className="helper-main" onClick={() => { setSelectedHelper(h); setPage('profile'); }} style={{ cursor: 'pointer' }}>
+                          <div className="helper-photo">
+                            <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80" alt={h.name} />
+                            <span className="online-dot" />
+                          </div>
+                          <div className="helper-info">
+                            <div className="helper-name-row"><h3>{h.name}</h3>{h.verified && <span className="verified-mark">✓</span>}</div>
+                            <div className="rating-line"><span className="stars">★★★★★</span> <strong>{h.rating}</strong> <span className="muted">({h.reviews})</span></div>
+                            <p className="helper-location">📍 {h.area}</p>
+                            <div className="skill-pills">{h.skills.map(sk => <span key={sk} className="skill-pill">{sk}</span>)}</div>
+                          </div>
+                        </div>
+                        <div className="helper-card-bottom">
+                          <div><strong>₹{h.rate}<small>/hr</small></strong><small>{h.experience}+ yrs exp</small></div>
+                          <button className="btn btn-primary btn-small" onClick={() => { setSelectedHelper(h); setPage('booking'); }}>Book now</button>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* HELPER PROFILE PAGE */}
+              {page === 'profile' && selectedHelper && (
+                <section className="page-frame">
+                  <div className="profile-layout">
+                    <div className="profile-card">
+                      <div className="profile-avatar">{selectedHelper.name.split(' ').map(n=>n[0]).join('')}</div>
+                      <h2>{selectedHelper.name}</h2>
+                      <p className="muted">📍 {selectedHelper.area}</p>
+                      <div className="rating-line" style={{ justifyContent: 'center' }}>
+                        <span className="stars">★★★★★</span> <strong>{selectedHelper.rating}</strong>
+                      </div>
+                      <div className="pills">
+                        <span className="pill green-pill">{selectedHelper.verified ? '✓ Verified' : 'Pending'}</span>
+                        <span className="pill green-pill">● Available</span>
+                      </div>
+                      <button className="btn btn-primary full" onClick={() => setPage('booking')}>Book This Helper</button>
+                    </div>
+                    <div className="profile-details">
+                      <div className="panel">
+                        <h3>About Helper</h3>
+                        <p>{selectedHelper.bio}</p>
+                        <div className="stat-row">
+                          <div><strong>{selectedHelper.experience}+</strong><small>Years Exp</small></div>
+                          <div><strong>{selectedHelper.reviews}</strong><small>Reviews</small></div>
+                          <div><strong>₹{selectedHelper.rate}/hr</strong><small>Standard Rate</small></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* BOOKING PAGE */}
+              {page === 'booking' && (
+                <section className="page-frame">
+                  <div className="page-heading">
+                    <span className="eyebrow">SLOT BOOKING</span>
+                    <h1>Reserve Domestic Service</h1>
+                    <p>Automated slot validation and conflict checking.</p>
+                  </div>
+                  <div className="booking-layout">
+                    <form className="panel booking-form" onSubmit={handleCreateBooking}>
+                      <div className="selected-helper">
+                        <div className="avatar large-avatar">{selectedHelper.name.split(' ').map(n=>n[0]).join('')}</div>
+                        <div>
+                          <strong>{selectedHelper.name} {selectedHelper.verified && '✓'}</strong>
+                          <small>★ {selectedHelper.rating} · {selectedHelper.area}</small>
+                        </div>
+                        <strong className="price-label">₹{selectedHelper.rate}/hr</strong>
+                      </div>
+
+                      <div className="form-row">
+                        <label>Service Category
+                          <select value={selectedService.id} onChange={e => setSelectedService(services.find(s=>s.id===e.target.value))}>
+                            {services.map(s => <option key={s.id} value={s.id}>{s.name} (₹{s.price}/hr)</option>)}
+                          </select>
+                        </label>
+                        <label>Duration
+                          <select value={bookingDuration} onChange={e => setBookingDuration(e.target.value)}>
+                            <option value="1">1 Hour</option>
+                            <option value="2">2 Hours (Standard)</option>
+                            <option value="3">3 Hours</option>
+                          </select>
+                        </label>
+                      </div>
+
+                      <div className="form-row">
+                        <label>Date
+                          <input type="date" required value={bookingDate} onChange={e => setBookingDate(e.target.value)} />
+                        </label>
+                        <label>Time Slot
+                          <select value={bookingTime} onChange={e => setBookingTime(e.target.value)}>
+                            {['08:00','09:00','10:00','11:00','12:00','14:00','16:00'].map(t=><option key={t} value={t}>{t}</option>)}
+                          </select>
+                        </label>
+                      </div>
+
+                      <label>Household Address
+                        <input required value={bookingAddress} onChange={e => setBookingAddress(e.target.value)} />
+                      </label>
+
+                      <label>Special Notes
+                        <input placeholder="e.g. Bring floor cleaner, ring twice" value={bookingNotes} onChange={e => setBookingNotes(e.target.value)} />
+                      </label>
+
+                      <button className="btn btn-primary full" type="submit">Confirm & Book Slot →</button>
+                    </form>
+
+                    <aside className="panel summary-panel">
+                      <h3>Booking Summary</h3>
+                      <div className="summary-line"><span>Service:</span><strong>{selectedService.name}</strong></div>
+                      <div className="summary-line"><span>Rate:</span><strong>₹{selectedHelper.rate}/hr</strong></div>
+                      <div className="summary-line"><span>Duration:</span><strong>{bookingDuration} hrs</strong></div>
+                      <div className="summary-line total"><span>Total Cost:</span><strong>₹{(selectedHelper.rate * Number(bookingDuration)).toLocaleString()}</strong></div>
+                    </aside>
+                  </div>
+                </section>
+              )}
+
+              {/* BOOKINGS PAGE */}
+              {page === 'bookings' && (
+                <section className="page-frame">
+                  <div className="page-heading">
+                    <span className="eyebrow">SERVICE HISTORY</span>
+                    <h1>All Appointments & Bookings</h1>
+                    <p>Track attendance check-in, payments, and replacement requests.</p>
+                  </div>
+                  <div className="booking-list">
+                    {bookings.map(b => (
+                      <article key={b.id} className="booking-row">
+                        <span className="booking-icon">{b.icon || '⌂'}</span>
+                        <div className="booking-main">
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <h3>{b.serviceName}</h3>
+                            {b.matchScore && <span className="match-score-badge" style={{ fontSize: '10px', padding: '2px 8px' }}>Match: {b.matchScore}%</span>}
+                          </div>
+                          <p><strong>{user.role === 'Helper' ? `Household: ${b.userName}` : `Helper: ${b.helperName}`}</strong> · {b.date} at {b.time} ({b.duration} hrs)</p>
+                          <small className="muted">📍 {b.address}</small>
+                          {b.checkInTime && <span className="attendance-tag">▶ In: {new Date(b.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>}
+                          {b.checkOutTime && <span className="attendance-tag">■ Out: {new Date(b.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>}
+                        </div>
+                        <div className="booking-price">
+                          <strong>₹{b.amount}</strong>
+                          <span className={`status ${b.status.toLowerCase().replace(' ', '-')}`}>{b.status}</span>
+                          <span className={`payment-status ${b.paymentStatus === 'Paid' ? 'paid' : ''}`}>{b.paymentStatus === 'Paid' ? 'Paid' : 'Pending'}</span>
+                        </div>
+                        <div className="booking-actions">
+                          {user.role === 'Helper' && b.status === 'Confirmed' && (
+                            <button className="btn btn-primary btn-small" onClick={() => handleAttendance(b.id, 'check-in')}>✓ Check In</button>
+                          )}
+                          {b.status === 'In Progress' && (
+                            <button className="btn btn-primary btn-small" onClick={() => handleAttendance(b.id, 'check-out')}>✓ Check Out</button>
+                          )}
+                          {user.role === 'Household' && b.paymentStatus !== 'Paid' && b.status !== 'Cancelled' && (
+                            <button className="btn btn-outline btn-small" onClick={() => handlePay(b.id)}>Mark Paid (Demo)</button>
+                          )}
+                          {user.role === 'Household' && (b.status === 'Cancelled' || b.status === 'Confirmed') && (
+                            <button className="btn btn-outline btn-small" onClick={() => handleReplace(b.id)}>🔄 Find Replacement</button>
+                          )}
+                          {b.status === 'Confirmed' && (
+                            <button className="btn btn-quiet btn-small" onClick={() => handleCancel(b.id)}>Cancel</button>
+                          )}
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* DASHBOARD PAGE */}
+              {page === 'dashboard' && (
+                <section className="page-frame">
+                  <div className="page-heading">
+                    <span className="eyebrow">{user.role.toUpperCase()} CONSOLE</span>
+                    <h1>Dashboard: {user.name}</h1>
+                    <p>Current role: <strong>{user.role}</strong></p>
+                  </div>
+
+                  {user.role === 'Admin' ? (
+                    <div className="dashboard-content">
+                      <div className="metric-grid">
+                        <div className="metric-card"><span>⌂</span><strong>4</strong><small>Households Registered</small></div>
+                        <div className="metric-card"><span>♧</span><strong>{helpers.length}</strong><small>Helpers ({helpers.filter(h=>h.verified).length} Verified)</small></div>
+                        <div className="metric-card"><span>▤</span><strong>{bookings.length}</strong><small>Total Bookings</small></div>
+                        <div className="metric-card"><span>₹</span><strong>₹1,250</strong><small>Platform Revenue</small></div>
+                      </div>
+                      <div className="panel">
+                        <h3>Helper Verification Management</h3>
+                        <table className="data-table">
+                          <thead>
+                            <tr><th>Name</th><th>Area</th><th>Rating</th><th>Status</th><th>Action</th></tr>
+                          </thead>
+                          <tbody>
+                            {helpers.map(h => (
+                              <tr key={h.id}>
+                                <td><strong>{h.name}</strong></td>
+                                <td>{h.area}</td>
+                                <td>★ {h.rating}</td>
+                                <td><span className={`pill ${h.verified ? 'green-pill' : ''}`}>{h.verified ? 'Verified' : 'Pending'}</span></td>
+                                <td>
+                                  <button className={`btn btn-small ${h.verified ? 'btn-outline' : 'btn-primary'}`} onClick={() => handleToggleVerify(h.id)}>
+                                    {h.verified ? 'Revoke' : 'Approve'}
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ) : user.role === 'Helper' ? (
+                    <div className="dashboard-content">
+                      <div className="availability-banner">
+                        <div>
+                          <strong>Availability: {user.available !== false ? 'Available' : 'Unavailable'}</strong>
+                          <p>Toggle your working status to receive new household bookings.</p>
+                        </div>
+                        <button className="btn btn-primary" onClick={() => handleToggleAvailability(user.available === false)}>
+                          Toggle Status
+                        </button>
+                      </div>
+                      <div className="metric-grid">
+                        <div className="metric-card"><span>▤</span><strong>{bookings.length}</strong><small>Assigned Bookings</small></div>
+                        <div className="metric-card"><span>★</span><strong>4.8</strong><small>Rating</small></div>
+                        <div className="metric-card"><span>₹</span><strong>₹400</strong><small>Total Earned</small></div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="dashboard-content">
+                      <div className="metric-grid">
+                        <div className="metric-card"><span>▤</span><strong>{bookings.length}</strong><small>Your Bookings</small></div>
+                        <div className="metric-card"><span>◷</span><strong>{bookings.filter(b=>b.status==='Confirmed').length}</strong><small>Upcoming</small></div>
+                        <div className="metric-card"><span>✓</span><strong>{bookings.filter(b=>b.status==='Completed').length}</strong><small>Completed</small></div>
+                      </div>
+                      <div className="dashboard-promo">
+                        <div>
+                          <span className="eyebrow">URGENT HELP</span>
+                          <h3>Need someone right now?</h3>
+                          <p>Dispatch the nearest available domestic helper immediately.</p>
+                          <button className="btn btn-primary btn-small" onClick={() => setIsUrgentOpen(true)}>⚡ Urgent Dispatch</button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </section>
+              )}
+
+              {/* ABOUT PAGE */}
+              {page === 'about' && (
+                <section className="page-frame">
+                  <div className="page-heading">
+                    <span className="eyebrow">ACADEMIC MINOR PROJECT – I</span>
+                    <h1>Sahayata – Smart Help for Every Home</h1>
+                    <p>Submitted in partial fulfillment of Master of Computer Applications (MCA).</p>
+                  </div>
+                  <div className="panel" style={{ maxWidth: '800px', margin: '0 auto', borderLeft: '4px solid #f63360' }}>
+                    <h3>Student & Project Credentials</h3>
+                    <p><strong>Student Name:</strong> TEJSI | <strong>Enrollment No.:</strong> 03814004426</p>
+                    <p><strong>Course / Shift:</strong> MCA I (Shift – I)</p>
+                    <p><strong>Institution:</strong> Jagan Institute of Management Studies (JIMS), Sector-5, Rohini, Delhi</p>
+                    <p><strong>Affiliated to:</strong> Guru Gobind Singh Indraprastha University (GGSIPU)</p>
+                  </div>
+                </section>
+              )}
+            </main>
+
+            {/* Footer */}
+            <footer className="footer">
+              <div className="footer-bottom">
+                <span>© {new Date().getFullYear()} Sahayata · MCA Minor Project – I · JIMS (GGSIPU)</span>
+                <span>Designed by <b>TEJSI</b> (Enrollment: 03814004426)</span>
+              </div>
+            </footer>
+
+            {/* Urgent Modal */}
+            {isUrgentOpen && (
+              <div className="modal-overlay" onClick={() => setIsUrgentOpen(false)}>
+                <div className="modal-card" onClick={e => e.stopPropagation()}>
+                  <div className="modal-header">
+                    <div>
+                      <span className="urgent-badge">⚡ Instant Dispatch</span>
+                      <h3 style={{ marginTop: '8px' }}>Need Help Now?</h3>
+                    </div>
+                    <button className="modal-close" onClick={() => setIsUrgentOpen(false)}>×</button>
+                  </div>
+                  <p className="muted" style={{ fontSize: '12px' }}>Choose the service you need right away. Sahayata will instantly assign the nearest top-rated helper.</p>
+                  <div style={{ display: 'grid', gap: '8px', marginTop: '15px' }}>
+                    {services.map(s => (
+                      <button key={s.id} className="btn btn-outline" style={{ justifyContent: 'space-between', padding: '12px 16px' }} onClick={() => handleUrgentConfirm(s.id)}>
+                        <span>{s.icon} <strong>{s.name}</strong></span>
+                        <span style={{ color: '#f63360', fontWeight: '800' }}>₹{s.price * 2} (2 hrs) →</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+  </body>
+</html>

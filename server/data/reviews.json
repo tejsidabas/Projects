@@ -1,0 +1,13 @@
+[
+  {
+    "id": "rev_1",
+    "bookingId": "b_102",
+    "helperId": "h2",
+    "helperName": "Sunita Verma",
+    "userId": "u_household_1",
+    "userName": "Rahul Mehta",
+    "rating": 5,
+    "comment": "Sunita did an immaculate job. Very quick and polite!",
+    "createdAt": "2026-11-08T15:15:00.000Z"
+  }
+]
